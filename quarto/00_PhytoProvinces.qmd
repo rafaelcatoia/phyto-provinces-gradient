@@ -1,0 +1,502 @@
+---
+title: "ZoopRegions"
+format: 
+  html:
+    fig-width: 12
+    fig-height: 6
+    fig-align: center
+    echo: true
+    code-fold: true
+    fig-dpi: 100
+    warning: false
+    message: false
+    page-layout: custom
+    embed-resources: true
+---
+
+::: panel-tabset
+
+# Data
+
+```{r}
+library(dplyr) ; library(tidyr) ; library(ggplot2) ; library(ggpubr) ; library(purrr)
+
+
+### -- 
+generating=F
+## -- 
+
+root <- rprojroot::has_file(".git/index")
+datadir = root$find_file("data")
+funsdir = root$find_file("functions")
+savingdir = root$find_file("saved_files")
+
+files_vec <- list.files(funsdir)
+
+for( i in 1:length(files_vec)){
+  source(root$find_file(paste0(funsdir,'/',files_vec[i])))
+}
+
+###############################
+## Loading
+###############################
+df_geo_abiotics = readRDS(file = paste0(savingdir,'/','df_geo_abiotics'))
+dfGrump_longer_filtered = readRDS(paste0(savingdir,'/','dfGrump_longer_phyto'))
+#list_AitDist = readRDS(paste0(savingdir,'/','list_AitDist'))
+list_normalized_geo_abiotics_dists = readRDS(file = paste0(savingdir,'/','list_abio_bio_geo_dist_normallized'))
+list_geo_abiotics_dists = readRDS(file = paste0(savingdir,'/','list_abio_bio_geo_dist'))
+grid_base = readRDS(file = paste0(savingdir,'/','grid_base'))
+
+```
+
+# Smetric - OOS - K
+```{r}
+df_evaluation <- readRDS(paste0(savingdir,'/','df_evaluation_choosing_k'))
+
+df_summary = bind_rows(
+  df_evaluation %>% 
+    group_by(ncluster,method,alpha,DistMetric) %>% 
+    summarise_all(.funs = mean) %>% mutate(summary_metric='Mean') %>% ungroup() %>% 
+    pivot_longer(cols = -c(ncluster,method,alpha,DistMetric,summary_metric),names_to = 'Metric'),
+  
+  df_evaluation %>% 
+    group_by(ncluster,method,alpha,DistMetric) %>% 
+    summarise_all(.funs = sd) %>% mutate(summary_metric='SD') %>% ungroup() %>% 
+    pivot_longer(cols = -c(ncluster,method,alpha,DistMetric,summary_metric),names_to = 'Metric')
+)
+
+
+df_summary %>% filter(Metric=='avg_within_between_dist2medoid') %>% select(-Metric) %>% 
+  pivot_wider(id_cols = ncluster:DistMetric,names_from = summary_metric ) %>%
+  mutate(alpha=factor(alpha)) %>% 
+  ggplot(aes(x=ncluster,y=Mean,color=alpha,fill=alpha,linetype=alpha))+
+  geom_line()+
+  geom_ribbon(aes(ymin=Mean-SD,ymax=Mean+SD),alpha=0.25)+
+  facet_grid(DistMetric~alpha,scales = 'free')+
+  theme_minimal()+
+  theme(legend.position = 'bottom')+
+  ggtitle('Sratio')+
+  scale_x_continuous(breaks = seq(0,1,0.1))
+```
+
+
+# Smetric - OOS - Alpha
+```{r}
+df_evaluation <- readRDS(paste0(savingdir,'/','df_evaluation_choosing_alpha'))
+
+df_summary = bind_rows(
+  df_evaluation %>% 
+    group_by(method,alpha,DistMetric) %>% 
+    summarise_all(.funs = mean) %>% mutate(summary_metric='Mean') %>% ungroup() %>% 
+    pivot_longer(cols = -c(method,alpha,DistMetric,summary_metric),names_to = 'Metric'),
+
+  df_evaluation %>% 
+    group_by(method,alpha,DistMetric) %>% 
+    summarise_all(.funs = sd) %>% mutate(summary_metric='SD') %>% ungroup() %>% 
+    pivot_longer(cols = -c(method,alpha,DistMetric,summary_metric),names_to = 'Metric')
+)
+
+df_summary %>%
+  pivot_wider(id_cols = method:Metric,names_from = summary_metric ) %>%
+  filter(Metric=='avg_within_between_dist2medoid') %>% 
+  ggplot(aes(x=alpha,y=Mean,color=method,fill=method))+
+  geom_line()+
+  geom_ribbon(aes(ymin=Mean-SD,ymax=Mean+SD),alpha=0.25)+
+  facet_grid(DistMetric~Metric,scales = 'free')+
+  theme_minimal()+
+  theme(legend.position = 'bottom')+
+  ggtitle('Sratio')+
+  scale_x_continuous(breaks = seq(0,1,0.1))
+```
+
+
+
+# Only - Clusters 
+
+```{r}
+#| fig-width: 16
+#| fig-height: 4
+#| fig-align: center
+#| fig-dpi: 150
+
+D = list_normalized_geo_abiotics_dists$bioticDist
+vet_alpha = c(0,0.05,0.1,0.2)
+D1 = as.dist(D)
+D2 = as.dist( (1-as.numeric(vet_alpha[1]))*D + as.numeric(vet_alpha[1])*list_normalized_geo_abiotics_dists$geoDist)
+D3 = as.dist( (1-as.numeric(vet_alpha[2]))*D + as.numeric(vet_alpha[2])*list_normalized_geo_abiotics_dists$geoDist)
+D4 = as.dist( (1-as.numeric(vet_alpha[3]))*D + as.numeric(vet_alpha[3])*list_normalized_geo_abiotics_dists$geoDist)
+
+####################################   Ward    ####################################
+#################################### Creating hclust objs
+hclust_0 = hclust(d=D1,method='ward.D')
+hclust_0.05 = hclust(d=D2,method='ward.D')
+hclust_0.10 = hclust(d=D3,method='ward.D')
+hclust_0.20 = hclust(d=D4,method='ward.D')
+
+par(mfrow=c(1,4))
+plot(hclust_0   ,labels = F,xlab = '',sub = '')
+plot(hclust_0.05,labels = F,xlab = '',sub = '')
+plot(hclust_0.10,labels = F,xlab = '',sub = '')
+plot(hclust_0.10,labels = F,xlab = '',sub = '')
+par(mfrow=c(1,1))
+```
+
+
+```{r}
+nclusters = 10
+#################################### With geodist 
+mat_cluster_membership_label <- cbind.data.frame(
+
+  ####################################   pam    ####################################
+  pam_a0=cluster::pam(x=D1,k = nclusters,cluster.only = T),
+  pam_a0.05=cluster::pam(x=D2,k = nclusters,cluster.only = T),
+  pam_a0.10=cluster::pam(x=D3,k = nclusters,cluster.only = T),
+  pam_a0.20=cluster::pam(x=D4,k = nclusters,cluster.only = T),
+  hclust_a0=cutree(hclust_0   ,k = nclusters),
+  hclust_a0.05=cutree(hclust_0.05,k = nclusters),
+  hclust_a0.10=cutree(hclust_0.10,k = nclusters),
+  hclust_a0.20=cutree(hclust_0.10,k = nclusters)
+)
+```
+
+```{r}
+#| fig-width: 16
+#| fig-height: 8
+#| fig-align: center
+#| fig-dpi: 150
+
+list_df4plot = df_geo_abiotics %>% bind_cols(
+  mat_cluster_membership_label
+) %>% 
+  tidyr::pivot_longer(cols = c(pam_a0,pam_a0.05,pam_a0.10,pam_a0.20,hclust_a0,hclust_a0.05,hclust_a0.10,hclust_a0.20)) %>% 
+  mutate(Cluster=as.factor(value),
+         method=factor(name,levels=c('pam_a0','pam_a0.05','pam_a0.10','pam_a0.20',
+                                     'hclust_a0','hclust_a0.05','hclust_a0.10','hclust_a0.20'))) %>%
+  group_split(method) #%>% 
+
+
+list_df4plot %>% purrr::map(
+    ~ggplot(., aes(x=Latitude,y=Depth, label = Cluster,fill=Cluster)) + 
+      geom_label(size = 3,alpha=0.5) +
+      theme_minimal()+
+      scale_y_reverse() +
+      # scale_colour_gradient2(
+      #   low = "deepskyblue", 
+      #   mid = "gray", 
+      #   high = "orange",
+      #   na.value = 'red',
+      #   midpoint = median(.$value,na.rm=T)
+      # )+
+      ggtitle(unique(.$method))+
+      theme(legend.position = '')
+    #facet_wrap(~ AbioticFactor, labeller = function(x) label_value(x, multi_line = FALSE))
+  ) %>% 
+  cowplot::plot_grid(plotlist = ., ncol = 4)
+```
+
+
+# Ocean Limits
+
+::: panel-tabset 
+
+## Clusters Before matching
+
+::: panel-tabset 
+
+### n_neigh=10
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+if(generating){
+  list_cluster_membership_and_bounderies = readRDS(
+    file =  paste0(savingdir,'/','list_cluster_membership_and_bounderies_10neigh'))
+  
+  clust_member_limits = unlist_coloring_obj(list_cluster_membership_and_bounderies)
+  
+  plt2 = gen_plots(gridBase = grid_base,clustMemLim = clust_member_limits,df_GeoAbio = df_geo_abiotics)
+  saveRDS(plt2,paste0(savingdir,'/','plt2'))
+  rm(list_cluster_membership_and_bounderies)
+  rm(clust_member_limits)
+}
+plt2 = readRDS(paste0(savingdir,'/','plt2'))
+plt2$limits_faceted
+```
+
+### n_neigh=5
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+if(generating){
+  list_cluster_membership_and_bounderies = readRDS(
+    file =  paste0(savingdir,'/','list_cluster_membership_and_bounderies_05neigh'))
+  
+  clust_member_limits = unlist_coloring_obj(list_cluster_membership_and_bounderies)
+  
+  plt2_n5 = gen_plots(gridBase = grid_base,clustMemLim = clust_member_limits,df_GeoAbio = df_geo_abiotics)
+  saveRDS(plt2_n5,paste0(savingdir,'/','plt2_n5'))
+  rm(list_cluster_membership_and_bounderies)
+  rm(clust_member_limits)
+}
+plt2_n5 = readRDS(paste0(savingdir,'/','plt2_n5'))
+plt2_n5$limits_faceted
+```
+
+### n_neigh=3
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+if(generating){
+  list_cluster_membership_and_bounderies = readRDS(
+    file =  paste0(savingdir,'/','list_cluster_membership_and_bounderies_mirroredLat_n3'))
+  
+  clust_member_limits = unlist_coloring_obj(list_cluster_membership_and_bounderies)
+  
+  plt2_n3 = gen_plots(gridBase = grid_base,clustMemLim = clust_member_limits,df_GeoAbio = df_geo_abiotics)
+  saveRDS(plt2_n3,paste0(savingdir,'/','plt2_n3'))
+  rm(list_cluster_membership_and_bounderies)
+  rm(clust_member_limits)
+}
+plt2_n3 = readRDS(paste0(savingdir,'/','plt2_n3'))
+plt2_n3$limits_faceted
+```
+
+:::
+
+<!-- starts comment here 
+
+## Clusters after matching
+
+::: panel-tabset 
+
+### n_neigh=10
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+
+if(generating){
+  list_cluster_membership_and_bounderies_mirroredLat_matched = readRDS(
+    file =  paste0(savingdir,'/','list_cluster_membership_and_bounderies_mirroredLat_matched'))
+  list_cluster_membership_and_bounderies_mirroredLat_matched <- list_cluster_membership_and_bounderies_mirroredLat_matched[1:100]
+  clust_member_limits = unlist_coloring_obj(list_cluster_membership_and_bounderies_mirroredLat_matched)
+  rm(list_cluster_membership_and_bounderies_mirroredLat_matched)
+  
+  plt3 = gen_plots(gridBase = grid_base,clustMemLim = clust_member_limits,df_GeoAbio = df_geo_abiotics)
+  saveRDS(plt3,paste0(savingdir,'/','plt3'))  
+  rm(clust_member_limits)
+}
+plt3 = readRDS(paste0(savingdir,'/','plt3'))
+plt3$limits_faceted
+```
+
+### n_neigh=5
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+if(generating){
+  list_cluster_membership_and_bounderies_mirroredLat_matched_n5 = readRDS(
+    file = paste0(savingdir,'/','list_cluster_membership_and_bounderies_mirroredLat_matched_n5'))
+  list_cluster_membership_and_bounderies_mirroredLat_matched_n5 <- list_cluster_membership_and_bounderies_mirroredLat_matched_n5[1:100]
+  clust_member_limits = unlist_coloring_obj(list_cluster_membership_and_bounderies_mirroredLat_matched_n5)
+  rm(list_cluster_membership_and_bounderies_mirroredLat_matched_n5)
+  
+  plt3_n5 = gen_plots(gridBase = grid_base,clustMemLim = clust_member_limits,df_GeoAbio = df_geo_abiotics)
+  saveRDS(plt3_n5,paste0(savingdir,'/','plt3_n5'))
+  rm(clust_member_limits)
+}
+plt3_n5 = readRDS(paste0(savingdir,'/','plt3_n5'))
+plt3_n5$limits_faceted
+```
+
+### n_neigh=3
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+
+if(generating){
+  list_cluster_membership_and_bounderies_mirroredLat_matched_n3 = readRDS(
+    file =  paste0(savingdir,'/','list_cluster_membership_and_bounderies_mirroredLat_matched_n3'))
+  list_cluster_membership_and_bounderies_mirroredLat_matched_n3 <- list_cluster_membership_and_bounderies_mirroredLat_matched_n3[1:100]
+  clust_member_limits = unlist_coloring_obj(list_cluster_membership_and_bounderies_mirroredLat_matched_n3)
+  rm(list_cluster_membership_and_bounderies_mirroredLat_matched_n3)
+  
+  plt3_n3 = gen_plots(gridBase = grid_base,clustMemLim = clust_member_limits,df_GeoAbio = df_geo_abiotics)
+  saveRDS(plt3_n3,paste0(savingdir,'/','plt3_n3'))
+  rm(clust_member_limits)
+}
+plt3_n3 = readRDS(paste0(savingdir,'/','plt3_n3'))
+plt3_n3$limits_faceted
+```
+:::
+
+ends comments here -->
+:::
+
+# Phyto Provinces
+
+::: panel-tabset 
+
+## Clusters Before matching
+
+::: panel-tabset 
+
+### n_neigh=10
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+plt2$clustRegion_facetd
+```   
+
+### n_neigh=5
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+plt2_n5$clustRegion_facetd
+```   
+
+### n_neigh=3
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+plt2_n3$clustRegion_facetd
+```   
+
+:::
+
+<!-- starts comment here 
+
+## Clusters after matching
+
+::: panel-tabset 
+
+### n_neigh=10
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+plt3$clustRegion_facetd
+```   
+
+### n_neigh=5
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+plt3_n5$clustRegion_facetd
+```   
+
+### n_neigh=3
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+plt3_n3$clustRegion_facetd
+```   
+
+:::
+
+ends comment here -->
+
+:::
+
+# Cluster Composition
+
+Here I chose $\apha=0.01$ and `ward.D`
+
+::: panel-tabset 
+
+### Biotic
+
+```{r}
+#| layout-ncol: 2
+#| layout-nrow: 2
+
+dfPlots = df_geo_abiotics %>%
+  bind_cols(mat_cluster_membership_label)
+
+dfGrump_longer_filtered_clustered =  dfGrump_longer_filtered %>% left_join(
+  dfPlots %>% transmute(SampleID=SampleID,Cluster = hclust_a0.10)
+)
+
+set.seed(1234)
+objd_dimRed = distMatrix_dimReduction(
+  distMatrix = list_geo_abiotics_dists$bioticDist,
+  neighUmap = 20,
+  perplexityTsne = 3)
+
+dimReduc_obj <- plot_dimReduc_coords(coord_plots = objd_dimRed,clusters = dfPlots$hclust_a0.10)
+
+dimReduc_obj$MDS_2d
+dimReduc_obj$nMDS_2d
+dimReduc_obj$TSNE_2d
+dimReduc_obj$umap_2d
+```
+
+### Abiotics
+```{r}
+#| layout-ncol: 2
+#| layout-nrow: 2
+
+set.seed(1234)
+objd_dimRed = distMatrix_dimReduction(
+  distMatrix = list_geo_abiotics_dists$abioticDist,
+  neighUmap = 10,
+  perplexityTsne = 10)
+
+dimReduc_obj <- plot_dimReduc_coords(coord_plots = objd_dimRed,clusters = dfPlots$hclust_a0.10)
+
+dimReduc_obj$MDS_2d
+dimReduc_obj$nMDS_2d
+dimReduc_obj$TSNE_2d
+dimReduc_obj$umap_2d
+```
+
+
+:::
+
+:::
+
