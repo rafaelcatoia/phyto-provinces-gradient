@@ -121,7 +121,7 @@ df_summary %>% filter(Metric=='max_max_dist_within') %>% select(-Metric) %>%
 
 
 ########################### Deciding alpha ###########################
-### I'll keep using K=10 for now.
+### I'll keep using K=5 for now.
 ### Let's focus in tuning alpha -------------------------------------------------------
 
 df_evaluation <- data.table::rbindlist(
@@ -211,7 +211,9 @@ df_summary %>%
   theme(legend.position = 'bottom')
 
 
-##### K= 8
+########################### Deciding alpha ###########################
+### I'll keep using K=10 for now.
+nclusters = 10
 df_evaluation <- data.table::rbindlist(
   parallel::mclapply(
     list_AitDist,function(x){
@@ -220,7 +222,7 @@ df_evaluation <- data.table::rbindlist(
         list_normalized_dist = list_normalized_geo_abiotics_dists,
         list_dist = list_geo_abiotics_dists,
         grid_alpha=seq(0,1,0.01),
-        K=8,
+        K=nclusters,
       )
     },mc.cores = 10))
 
