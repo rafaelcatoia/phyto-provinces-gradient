@@ -68,22 +68,6 @@ df_summary %>% filter(Metric=='avg_within_between_dist2medoid') %>% select(-Metr
 
 
 ## Need Ideas
-df_summary %>% filter(Metric=='avg_within_between_dist2medoid') %>%
-  select(-Metric) %>% 
-  pivot_wider(id_cols = ncluster:DistMetric,names_from = summary_metric ) %>%
-  mutate(alpha=factor(alpha)) %>% 
-  filter(alpha=='0',DistMetric=='Bio') %>% 
-  mutate(CumSum = cumsum(Mean),
-         Test = Mean/CumSum) %>% 
-  ggplot(aes(x=ncluster,y=Test,color=alpha,fill=alpha,linetype=alpha))+
-  geom_line()+
-  #geom_ribbon(aes(ymin=Mean-SD,ymax=Mean+SD),alpha=0.25)+
-  facet_wrap(~DistMetric,scales = 'free')+
-  theme_minimal()+
-  theme(legend.position = 'bottom')+
-  ggtitle('Sratio')
-
-
 
 df_summary %>% filter(Metric=='avg_dist_within_dist2medoid') %>% select(-Metric) %>% 
   pivot_wider(id_cols = ncluster:DistMetric,names_from = summary_metric ) %>%
@@ -132,7 +116,7 @@ df_evaluation <- data.table::rbindlist(
         list_normalized_dist = list_normalized_geo_abiotics_dists,
         list_dist = list_geo_abiotics_dists,
         grid_alpha=seq(0,1,0.01),
-        K=5,
+        K=3,
       )
     },mc.cores = 10))
 
@@ -200,6 +184,7 @@ df_summary %>%
   theme_minimal()+
   theme(legend.position = 'bottom')
 
+
 df_summary %>%
   pivot_wider(id_cols = method:Metric,names_from = summary_metric ) %>%
   filter(Metric=='avg_max_dist_within') %>% 
@@ -213,7 +198,7 @@ df_summary %>%
 
 ########################### Deciding alpha ###########################
 ### I'll keep using K=10 for now.
-nclusters = 10
+nclusters = 6
 df_evaluation <- data.table::rbindlist(
   parallel::mclapply(
     list_AitDist,function(x){

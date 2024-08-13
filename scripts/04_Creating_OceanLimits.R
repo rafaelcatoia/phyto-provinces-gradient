@@ -31,7 +31,7 @@ list_cluster_membership_and_bounderies_mirroredLat = parallel::mclapply(
   list_AitDist,
   function(x){
     coloring_map(D = x,
-                 nclusters = 10,
+                 nclusters = 6,
                  gbase = grid_base,
                  list_normalized_dist = list_normalized_geo_abiotics_dists)
   },mc.cores = 10)
@@ -47,9 +47,13 @@ saveRDS(list_cluster_membership_and_bounderies_mirroredLat,
 
 list_cluster_membership_and_bounderies_mirroredLat_n5 = parallel::mclapply(
   list_AitDist,
-  function(x){coloring_map(D = x,nclusters = 10,
-                           gbase = grid_base %>% select(lat_grid,depth_grid,n_neighs01,n_neighs02,n_neighs03,n_neighs04,n_neighs05),
-                           list_normalized_dist = list_normalized_geo_abiotics_dists)},mc.cores = 10)
+  function(x){coloring_map(
+    D = x,nclusters = 6,
+    gbase = grid_base %>% select(
+      lat_grid,depth_grid,
+      n_neighs01,n_neighs02,n_neighs03,n_neighs04,n_neighs05),
+    list_normalized_dist = list_normalized_geo_abiotics_dists)},
+  mc.cores = 10)
 
 saveRDS(list_cluster_membership_and_bounderies_mirroredLat_n5,
         file = paste0(savingdir,'/','list_cluster_membership_and_bounderies_05neigh'))
@@ -62,8 +66,10 @@ list_cluster_membership_and_bounderies_mirroredLat_n3 = parallel::mclapply(
   list_AitDist,
   function(x){
     coloring_map(
-      D = x,nclusters = 10,
-      gbase = grid_base %>% select(lat_grid,depth_grid,n_neighs01,n_neighs02,n_neighs03),
+      D = x,nclusters = 6,
+      gbase = grid_base %>% select(
+        lat_grid,depth_grid,
+        n_neighs01,n_neighs02,n_neighs03),
       list_normalized_dist = list_normalized_geo_abiotics_dists)},
   mc.cores = 10)
 
@@ -82,7 +88,7 @@ list_cluster_membership_and_bounderies_mirroredLat = parallel::mclapply(
   list_AitDist,
   function(x){
     coloring_map(D = x,
-                 nclusters = 5,
+                 nclusters = 4,
                  gbase = grid_base,
                  list_normalized_dist = list_normalized_geo_abiotics_dists)
   },mc.cores = 10)
@@ -99,8 +105,10 @@ saveRDS(list_cluster_membership_and_bounderies_mirroredLat,
 list_cluster_membership_and_bounderies_mirroredLat_n5 = parallel::mclapply(
   list_AitDist,
   function(x){coloring_map(
-    D = x,nclusters = 5,
-    gbase = grid_base %>% select(lat_grid,depth_grid,n_neighs01,n_neighs02,n_neighs03,n_neighs04,n_neighs05),
+    D = x,nclusters = 4,
+    gbase = grid_base %>% select(
+      lat_grid,depth_grid,
+      n_neighs01,n_neighs02,n_neighs03,n_neighs04,n_neighs05),
     list_normalized_dist = list_normalized_geo_abiotics_dists)},mc.cores = 10)
 
 saveRDS(list_cluster_membership_and_bounderies_mirroredLat_n5,
@@ -114,8 +122,10 @@ list_cluster_membership_and_bounderies_mirroredLat_n3 = parallel::mclapply(
   list_AitDist,
   function(x){
     coloring_map(
-      D = x,nclusters = 5,
-      gbase = grid_base %>% select(lat_grid,depth_grid,n_neighs01,n_neighs02,n_neighs03),
+      D = x,nclusters = 4,
+      gbase = grid_base %>% select(
+        lat_grid,depth_grid,
+        n_neighs01,n_neighs02,n_neighs03),
       list_normalized_dist = list_normalized_geo_abiotics_dists)},
   mc.cores = 10)
 

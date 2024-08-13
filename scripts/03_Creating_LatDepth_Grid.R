@@ -13,6 +13,9 @@ for( i in 1:length(files_vec)){
 }
 
 df_geo_abiotics <- readRDS(paste0(savingdir,'/','df_geo_abiotics'))
+df_geo_abiotics = df_geo_abiotics %>%
+  mutate(SampleID=factor(SampleID)) %>% 
+  arrange(SampleID)
 
 ## Store mean and sd of the df_geo_abiotics
 lat_scale_obj   <- c(mean(df_geo_abiotics$Latitude),sd(df_geo_abiotics$Latitude))
@@ -28,8 +31,8 @@ max_lat = round(max(df_geo_abiotics$lat_scaled),1)+0.1
 min_depth = round(min(df_geo_abiotics$depht_scaled),1)-0.1
 max_depth = round(max(df_geo_abiotics$depht_scaled),1)+0.1
 
-lat_grid = seq(min_lat,max_lat,0.01)
-depth_grid = seq(min_depth,max_depth,0.01)
+lat_grid = seq(min_lat,max_lat,0.05)
+depth_grid = seq(min_depth,max_depth,0.05)
 
 ## expanding the grid 
 grid_base = expand_grid(lat_grid,depth_grid)

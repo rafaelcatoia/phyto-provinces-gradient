@@ -21,8 +21,9 @@ format:
 ```{r}
 library(dplyr) ; library(tidyr) ; library(ggplot2) ; library(ggpubr) ; library(purrr)
 
-### -- 
-generating=F
+### -- If you are generating this document for the first time
+### You must use generating =T, if you 
+generating=T
 ## -- 
 
 root <- rprojroot::has_file(".git/index")
@@ -40,6 +41,9 @@ for( i in 1:length(files_vec)){
 ## Loading
 ###############################
 df_geo_abiotics = readRDS(file = paste0(savingdir,'/','df_geo_abiotics'))
+
+df_geo_abiotics = df_geo_abiotics %>% 
+  filter(Latitude>25)
 
 dfGrump_longer_filtered = data.table::fread(paste0(datadir,'/','phyto_gradients.csv'))
 
@@ -235,6 +239,10 @@ df_summary = bind_rows(
 
 
 ```{r}
+#| fig-width: 16
+#| fig-height: 4
+#| fig-align: center
+
 df_summary %>%
   pivot_wider(id_cols = method:Metric,names_from = summary_metric ) %>%
   filter(Metric=='avg_within_between_dist2medoid') %>% 
@@ -401,7 +409,7 @@ par(mfrow=c(1,1))
 
 
 ```{r}
-nclusters = 7
+nclusters = 6
 #################################### With geodist 
 mat_cluster_membership_label <- cbind.data.frame(
 
@@ -457,22 +465,25 @@ list_df4plot %>% purrr::map(
 ```
 
 
-# Ocean Limits
+# Ocean Limits & Provinces
 
 ::: panel-tabset 
 
-## Clusters Before matching - k=5
+## No Matching - k=5
 
 ::: panel-tabset 
 
-### n_neigh=10
+### Limits
+
+::: panel-tabset 
+
+#### n_neigh=10
 
 ```{r}
 #| fig-width: 25
 #| fig-height: 12
 #| fig-align: center
 #| fig-dpi: 300
-generating=F
 if(generating){
   list_cluster_membership_and_bounderies = readRDS(
     file =  paste0(savingdir,'/','list_cluster_membership_and_bounderies_10neigh_k5'))
@@ -488,7 +499,7 @@ plt2 = readRDS(paste0(savingdir,'/','plt2'))
 plt2$limits_faceted
 ```
 
-### n_neigh=5
+#### n_neigh=5
 
 ```{r}
 #| fig-width: 25
@@ -511,7 +522,7 @@ plt2_n5 = readRDS(paste0(savingdir,'/','plt2_n5'))
 plt2_n5$limits_faceted
 ```
 
-### n_neigh=3
+#### n_neigh=3
 
 ```{r}
 #| fig-width: 25
@@ -537,17 +548,11 @@ plt2_n3$limits_faceted
 
 :::
 
-:::
-
-# Phyto Provinces
+### Provinces
 
 ::: panel-tabset 
 
-## Clusters Before matching
-
-::: panel-tabset 
-
-### n_neigh=10
+#### n_neigh=10
 
 ```{r}
 #| fig-width: 25
@@ -558,7 +563,7 @@ plt2_n3$limits_faceted
 plt2$clustRegion_facetd
 ```   
 
-### n_neigh=5
+#### n_neigh=5
 
 ```{r}
 #| fig-width: 25
@@ -569,7 +574,7 @@ plt2$clustRegion_facetd
 plt2_n5$clustRegion_facetd
 ```   
 
-### n_neigh=3
+#### n_neigh=3
 
 ```{r}
 #| fig-width: 25
@@ -580,35 +585,41 @@ plt2_n5$clustRegion_facetd
 plt2_n3$clustRegion_facetd
 ```   
 
+:::
 
+:::
 
-## Ocean Limits k=10
+## No Matching - k=10
 
 ::: panel-tabset 
 
-### n_neigh=10
+### Limits
+
+::: panel-tabset 
+
+#### n_neigh=10
 
 ```{r}
 #| fig-width: 25
 #| fig-height: 12
 #| fig-align: center
 #| fig-dpi: 300
-
 if(generating){
   list_cluster_membership_and_bounderies = readRDS(
     file =  paste0(savingdir,'/','list_cluster_membership_and_bounderies_10neigh'))
   
-  clust_member_limits = unlist_coloring_obj(list_cluster_membership_and_bounderies)
-  rm(list_cluster_membership_and_bounderies)
+  clust_member_limits =unlist_coloring_obj(list_cluster_membership_and_bounderies)
+  
   plt2 = gen_plots(gridBase = grid_base,clustMemLim = clust_member_limits,df_GeoAbio = df_geo_abiotics)
+  saveRDS(plt2,paste0(savingdir,'/','plt2'))
+  rm(list_cluster_membership_and_bounderies)
   rm(clust_member_limits)
-  saveRDS(plt2,paste0(savingdir,'/','plt2_k10'))
 }
-plt2 = readRDS(paste0(savingdir,'/','plt2_k10'))
+plt2 = readRDS(paste0(savingdir,'/','plt2'))
 plt2$limits_faceted
 ```
 
-### n_neigh=5
+#### n_neigh=5
 
 ```{r}
 #| fig-width: 25
@@ -625,14 +636,13 @@ if(generating){
   
   plt2_n5 = gen_plots(gridBase = grid_base,clustMemLim = clust_member_limits,df_GeoAbio = df_geo_abiotics)
   rm(clust_member_limits)
-  
-  saveRDS(plt2_n5,paste0(savingdir,'/','plt2_n5_k10'))
+  saveRDS(plt2_n5,paste0(savingdir,'/','plt2_n5'))
 }
-plt2_n5 = readRDS(paste0(savingdir,'/','plt2_n5_k10'))
+plt2_n5 = readRDS(paste0(savingdir,'/','plt2_n5'))
 plt2_n5$limits_faceted
 ```
 
-### n_neigh=3
+#### n_neigh=3
 
 ```{r}
 #| fig-width: 25
@@ -649,28 +659,69 @@ if(generating){
   
   plt2_n3 = gen_plots(gridBase = grid_base,clustMemLim = clust_member_limits,df_GeoAbio = df_geo_abiotics)
   rm(clust_member_limits)
-  saveRDS(plt2_n3,paste0(savingdir,'/','plt2_n3_k10'))
+  
+  saveRDS(plt2_n3,paste0(savingdir,'/','plt2_n3'))
 }
-plt2_n3 = readRDS(paste0(savingdir,'/','plt2_n3_k10'))
+plt2_n3 = readRDS(paste0(savingdir,'/','plt2_n3'))
 plt2_n3$limits_faceted
 ```
 
 :::
 
+### Provinces
+
+::: panel-tabset 
+
+#### n_neigh=10
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+plt2$clustRegion_facetd
+```   
+
+#### n_neigh=5
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+plt2_n5$clustRegion_facetd
+```   
+
+#### n_neigh=3
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+plt2_n3$clustRegion_facetd
+```   
+
+:::
+
 :::
 
 
 :::
 
-:::
+
 
 # Cluster Composition
 
 Here I chose $\alpha=0.01$ and `ward.D`
 
+
 ::: panel-tabset 
 
-### Dimensionality Reduction
+## Dimensionality Reduction
 
 ```{r}
 #| layout-ncol: 2
@@ -715,7 +766,7 @@ dimReduc_obj$TSNE_2d
 dimReduc_obj$umap_2d
 ```
 
-### BioComposition
+## BioComposition
 
 ```{r}
 eco_groups_zoop_tax_lat_depth = dfGrump_longer_filtered %>% 
@@ -763,14 +814,9 @@ eco_relevant_plot_df %>%
     scale_y_reverse()+
     theme_minimal(base_size = 16)+
     theme(legend.position = 'bottom')
-
 ```
 
 
-
-
-
 :::
 
 :::
-

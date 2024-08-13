@@ -1,5 +1,12 @@
 #list_geo_abiotics_dists = readRDS(file = paste0(savingdir,'/','list_geo_abiotics_dists'))
-#
+
+
+#function evaluate_cluster
+## this function runs inside eval_clustering_OOS function.
+## it receives a distance Matrix that will be evaluated
+## and a data frame containg the cluster membership of each samples.
+
+## Objects necessary for debugging it::
 #distMatrixEval = list_geo_abiotics_dists$geo_Dist_mirrored
 #list_geo_abiotics_dists$geo_Dist %>% plot_distance_matrix
 #list_geo_abiotics_dists$geo_Dist_mirrored %>% plot_distance_matrix

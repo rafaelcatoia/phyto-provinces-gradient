@@ -1,7 +1,15 @@
 ############# ----------------------------------------------------------
 ## script to create a function to evaluate the clusterings -- deciding K
 ############# ----------------------------------------------------------
- 
+
+# function eval_clustering_OOS
+# description used to perfomr in-out-of-sample evaluation to choose k.
+
+## D = distance matrix that will be evaluated
+## list_normalized_dist = list of distance matrix that will be used to create the clusters
+## list_geo_abiotics_dists = list of distance matrix that will be used to evaluate the cluster memberships
+
+#### Files that are necessary to debug it:
 # df_geo_abiotics = readRDS(file = paste0(savingdir,'/','df_geo_abiotics'))
 # dfGrump_longer_filtered = data.table::fread(paste0(datadir,'/','grump_phyto.csv'))
 # list_AitDist = readRDS(file = paste0(savingdir,'/','list_AitDist_IS_OOS'))

@@ -13,20 +13,24 @@ savingdir = root$find_file("saved_files")
 
 ## Loading grump data  #####################################################
 path_grump = root$find_file('data/grump_asv_long.csv') 
-df_grump_all <- data.table::fread(path_grump) #is this causing missings?
+df_grump_all <- data.table::fread(path_grump)
 
-
-df_grump_all %>% select(Eco_relevant_plank_groups) %>% distinct()
 ## Selecting the slice that we are interested in  ##########################
 ## For this script we are only looking at the Gradients 2 and 3 ############
-grump_slice = df_grump_all %>% filter(Cruise %in% c('Gradients_2','Gradients_3'))
+grump_slice = df_grump_all %>%
+  filter(Cruise %in% c('Gradients_2','Gradients_3')) %>% 
+  filter(Latitude > 25)
 
 ## Looking at the sample level 
-vet_abiotic = c("Temperature","Salinity","Oxygen",
-                "Silicate","NO2","NO3","PO4")
+vet_abiotic = c(
+  "Temperature","Salinity","Oxygen",
+  "Silicate","NO2","NO3","PO4")
 
-grump_slice  %>% select(SampleID,any_of(vet_abiotic),
-                     Latitude,Longitude,Depth,Longhurst_Short) %>%
+## Computting missing on the abiotic factors
+grump_slice  %>% select(
+  SampleID,
+  any_of(vet_abiotic),
+  Latitude,Longitude,Depth,Longhurst_Short) %>%
   distinct() %>% arrange(SampleID) %>% 
   select(one_of(vet_abiotic)) %>% 
   apply(.,2,function(x){sum(is.na(x))})
