@@ -1,6 +1,15 @@
-####################################################### ---
+############################################################## ---
+## Script 03 -- Finding the n-nearest neighbours to each pixel
+############################################################## ---
+
+
+#######################################################
+## Packages
+#######################################################
 library(parallel) ; library(dplyr) ; library(tidyr)
 
+#######################################################
+## Directories and functions 
 root <- rprojroot::has_file(".git/index")
 datadir = root$find_file("data")
 funsdir = root$find_file("functions")
@@ -12,18 +21,28 @@ for( i in 1:length(files_vec)){
   source(root$find_file(paste0(funsdir,'/',files_vec[i])))
 }
 
+## Loading data frame related to each sample
 df_geo_abiotics <- readRDS(paste0(savingdir,'/','df_geo_abiotics'))
+
 df_geo_abiotics = df_geo_abiotics %>%
   mutate(SampleID=factor(SampleID)) %>% 
   arrange(SampleID)
 
+##storing mean and sd of latitude and depth
+#######################################################
 ## Store mean and sd of the df_geo_abiotics
 lat_scale_obj   <- c(mean(df_geo_abiotics$Latitude),sd(df_geo_abiotics$Latitude))
 depth_scale_obj <- c(mean(df_geo_abiotics$Depth),sd(df_geo_abiotics$Depth))
 
+
+##scaling latitude and depth 
+#######################################################
 df_geo_abiotics = df_geo_abiotics %>% 
   mutate(lat_scaled = (Latitude - mean(Latitude) ) /sd(Latitude),
          depht_scaled = (Depth -mean(Depth) ) / sd(Depth))
+
+
+######## Creating the grid ########### ------------------------------------
 
 ## Now setting the values that the grid will run on
 min_lat = round(min(df_geo_abiotics$lat_scaled),1)-0.1
@@ -35,31 +54,60 @@ lat_grid = seq(min_lat,max_lat,0.05)
 depth_grid = seq(min_depth,max_depth,0.05)
 
 ## expanding the grid 
-grid_base = expand_grid(lat_grid,depth_grid)
+grid_base = tidyr::expand_grid(lat_grid,depth_grid)
 
 ## Here we set the number of nearest neigh 
 nneigh = 10
 
 #matrix that will retain the index of the neighbors
-nneigh_aux <- matrix(NA,nrow = nrow(grid_base),ncol=nneigh)
 maxIt = nrow(grid_base)
 
-for( i in 1:maxIt){
-  nneigh_aux[i,] <- dist_grid_sample(grid_base[i,],n_neigh = nneigh)
-  if(i%%100==0){cat('iteration ----------------------- ',i,'of ',maxIt,'\n')}
-}
+################################################################
+## Now we will find the n-nearest samples to each pixel 
+################################################################
 
-## only giving names to the columns 
-aux <- 1:ncol(nneigh_aux)
-colnames(nneigh_aux) = ifelse(aux<10,
-                              paste0('n_neighs0',aux),
-                              paste0('n_neighs',aux))
+
+## Parallelizing this step would be really nice. 
+## Unparallelized version 
+# for( i in 1:maxIt){
+#   nneigh_aux[i,] <- dist_grid_sample(grid_base[i,],n_neigh = nneigh)
+#   if(i%%100==0){cat('iteration ----------------------- ',i,'of ',maxIt,'\n')}
+# }
+
+## Parallelized verison ----------------------------------
+## First from df to list
+grid_base_list = grid_base %>%
+  mutate(pixelID = 1:n()) %>% group_split(pixelID,.keep = F)
+  
+## now finding the n-closest neigh to each pixel
+list_n_nearest_neigh <- parallel::mclapply(
+    grid_base_list,
+    function(x){
+      dist_grid_sample(x,n_neigh = nneigh)
+    },mc.cores = 12
+  )
+
+## setting the names
+aux <- 1:nneigh
+
+##unlisting to a dataframe
+nneigh_aux = data.table::rbindlist(
+  lapply(
+    list_n_nearest_neigh,
+    function(xx){
+      as.data.frame.list(
+        x=xx,
+        col.names=ifelse(aux<10,paste0('n_neighs0',aux),paste0('n_neighs',aux)))
+    }
+  )
+) %>% data.frame()
 
 
 grid_base = bind_cols(grid_base %>% select(lat_grid,depth_grid),nneigh_aux) 
 
 ## now we can basically start from here now.
 saveRDS(grid_base,paste0(savingdir,'/','grid_base'))
+
 #grid_base <- readRDS(paste0(savingdir,'/','grid_base'))
 
 ## Everything underneath was only used to create the functions required to cloloring/finding the limits.

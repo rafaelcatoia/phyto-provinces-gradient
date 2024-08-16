@@ -24,7 +24,7 @@ normalizeMatrix <- function(XX){
 root <- rprojroot::has_file(".git/index")
 datadir = root$find_file("data")
 savingdir = root$find_file("saved_files")
-path_df = root$find_file('data/phyto_gradients.csv')
+path_df = root$find_file('data/phyto_gradients.csv') # filtered version
 
 ## filtering only the cruises that we want and depth
 grump_longer <- data.table::fread(path_df)
@@ -53,17 +53,6 @@ saveRDS(df_geo_abiotics,file = paste0(savingdir,'/','df_geo_abiotics'))
 ### Creating the list containing distance matrices 
 ### Normalized an unnormalized
 ### --------------------------------------------------------------
-
-df_geo_abiotics %>% left_join(
-  grump_longer %>% transmute(
-    SampleID=factor(SampleID),
-    Season,Year=factor(Year)
-    )
-  ) %>% 
-  ggplot(aes(x=Latitude,y=Depth,color=Season,shape=Season,size=Temperature))+
-  geom_point()+
-  facet_grid(~Year)+
-  scale_y_reverse()
   
 
 ###### First the normalized ones  ################################
@@ -102,9 +91,6 @@ bioticDist = grump_longer %>%
   select(-SampleID) %>% 
   vegan::vegdist(method = 'aitchison') %>% as.matrix() #%>% normalizeMatrix()
 
-h_clust_obj <- hclust(d = as.dist(bioticDist))
-
-
 
 list_abio_bio_geo_dist <- list(
   geoDist = geoDist,
@@ -139,7 +125,7 @@ list_AitDist = list()
 idASVs = grump_longer %>% select(ID_ASV) %>% distinct() %>% pull
 
 ## percentage of columns
-pct_colSubSample = 0.5 
+pct_colSubSample = 0.5
 
 ## minimal value to add in order to get the CLR transform / Aitchison distance
 min_raw_count = grump_longer %>% select(Raw.Sequence.Counts) %>% min()
