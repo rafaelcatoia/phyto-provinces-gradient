@@ -18,7 +18,7 @@ df_grump_all <- data.table::fread(path_grump)
 ## Selecting the slice that we are interested in  ##########################
 ## For this script we are only looking at the Gradients 2 and 3 ############
 grump_slice = df_grump_all %>%
-  filter(Cruise %in% c('Gradients_2','Gradients_3')) %>% 
+  filter(Cruise %in% c('Gradients_2')) %>% #,'Gradients_3')) %>% 
   filter(Latitude > 25)
 
 ## Looking at the sample level 

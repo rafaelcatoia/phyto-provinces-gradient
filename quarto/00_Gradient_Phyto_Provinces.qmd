@@ -1,5 +1,5 @@
 ---
-title: "Gradient Phyto Provinces"
+title: "Gradient2 -  Phyto Provinces"
 format: 
   html:
     fig-width: 12
@@ -43,9 +43,11 @@ for( i in 1:length(files_vec)){
 df_geo_abiotics = readRDS(file = paste0(savingdir,'/','df_geo_abiotics'))
 
 df_geo_abiotics = df_geo_abiotics %>% 
-  filter(Latitude>25)
+  filter(Latitude>25) %>% 
+  mutate(SampleID=factor(SampleID))
 
-dfGrump_longer_filtered = data.table::fread(paste0(datadir,'/','phyto_gradients.csv'))
+dfGrump_longer_filtered = data.table::fread(paste0(datadir,'/','phyto_gradients.csv')) %>% 
+  mutate(SampleID=factor(SampleID))
 
 #list_AitDist = readRDS(paste0(savingdir,'/','list_AitDist'))
 list_normalized_geo_abiotics_dists = readRDS(file = paste0(savingdir,'/','list_abio_bio_geo_dist_normallized'))
@@ -220,7 +222,7 @@ df_summary %>%
   ggtitle('Abio - Denominator')
 ```
 
-# Smetric - OOS - Alpha - k=5
+# Smetric - OOS - Alpha - k=3
 ```{r}
 df_evaluation <- readRDS(paste0(savingdir,'/','df_evaluation_choosing_alpha'))
 
@@ -293,7 +295,7 @@ df_summary %>%
 ```
 
 
-# Smetric - OOS - Alpha - k=10
+# Smetric - OOS - Alpha - k=6
 ```{r}
 #| fig-width: 16
 #| fig-height: 4
@@ -469,127 +471,7 @@ list_df4plot %>% purrr::map(
 
 ::: panel-tabset 
 
-## No Matching - k=5
-
-::: panel-tabset 
-
-### Limits
-
-::: panel-tabset 
-
-#### n_neigh=10
-
-```{r}
-#| fig-width: 25
-#| fig-height: 12
-#| fig-align: center
-#| fig-dpi: 300
-if(generating){
-  list_cluster_membership_and_bounderies = readRDS(
-    file =  paste0(savingdir,'/','list_cluster_membership_and_bounderies_10neigh_k5'))
-  
-  clust_member_limits =unlist_coloring_obj(list_cluster_membership_and_bounderies)
-  
-  plt2 = gen_plots(gridBase = grid_base,clustMemLim = clust_member_limits,df_GeoAbio = df_geo_abiotics)
-  saveRDS(plt2,paste0(savingdir,'/','plt2'))
-  rm(list_cluster_membership_and_bounderies)
-  rm(clust_member_limits)
-}
-plt2 = readRDS(paste0(savingdir,'/','plt2'))
-plt2$limits_faceted
-```
-
-#### n_neigh=5
-
-```{r}
-#| fig-width: 25
-#| fig-height: 12
-#| fig-align: center
-#| fig-dpi: 300
-
-if(generating){
-  list_cluster_membership_and_bounderies = readRDS(
-    file =  paste0(savingdir,'/','list_cluster_membership_and_bounderies_05neigh_k5'))
-  
-  clust_member_limits = unlist_coloring_obj(list_cluster_membership_and_bounderies)
-  rm(list_cluster_membership_and_bounderies)
-  
-  plt2_n5 = gen_plots(gridBase = grid_base,clustMemLim = clust_member_limits,df_GeoAbio = df_geo_abiotics)
-  rm(clust_member_limits)
-  saveRDS(plt2_n5,paste0(savingdir,'/','plt2_n5'))
-}
-plt2_n5 = readRDS(paste0(savingdir,'/','plt2_n5'))
-plt2_n5$limits_faceted
-```
-
-#### n_neigh=3
-
-```{r}
-#| fig-width: 25
-#| fig-height: 12
-#| fig-align: center
-#| fig-dpi: 300
-
-if(generating){
-  list_cluster_membership_and_bounderies = readRDS(
-    file =  paste0(savingdir,'/','list_cluster_membership_and_bounderies_mirroredLat_n3_k5'))
-  
-  clust_member_limits = unlist_coloring_obj(list_cluster_membership_and_bounderies)
-  rm(list_cluster_membership_and_bounderies)
-  
-  plt2_n3 = gen_plots(gridBase = grid_base,clustMemLim = clust_member_limits,df_GeoAbio = df_geo_abiotics)
-  rm(clust_member_limits)
-  
-  saveRDS(plt2_n3,paste0(savingdir,'/','plt2_n3'))
-}
-plt2_n3 = readRDS(paste0(savingdir,'/','plt2_n3'))
-plt2_n3$limits_faceted
-```
-
-:::
-
-### Provinces
-
-::: panel-tabset 
-
-#### n_neigh=10
-
-```{r}
-#| fig-width: 25
-#| fig-height: 12
-#| fig-align: center
-#| fig-dpi: 300
-
-plt2$clustRegion_facetd
-```   
-
-#### n_neigh=5
-
-```{r}
-#| fig-width: 25
-#| fig-height: 12
-#| fig-align: center
-#| fig-dpi: 300
-
-plt2_n5$clustRegion_facetd
-```   
-
-#### n_neigh=3
-
-```{r}
-#| fig-width: 25
-#| fig-height: 12
-#| fig-align: center
-#| fig-dpi: 300
-
-plt2_n3$clustRegion_facetd
-```   
-
-:::
-
-:::
-
-## No Matching - k=10
+## No Matching - k=3
 
 ::: panel-tabset 
 
@@ -653,6 +535,126 @@ plt2_n5$limits_faceted
 if(generating){
   list_cluster_membership_and_bounderies = readRDS(
     file =  paste0(savingdir,'/','list_cluster_membership_and_bounderies_mirroredLat_n3'))
+  
+  clust_member_limits = unlist_coloring_obj(list_cluster_membership_and_bounderies)
+  rm(list_cluster_membership_and_bounderies)
+  
+  plt2_n3 = gen_plots(gridBase = grid_base,clustMemLim = clust_member_limits,df_GeoAbio = df_geo_abiotics)
+  rm(clust_member_limits)
+  
+  saveRDS(plt2_n3,paste0(savingdir,'/','plt2_n3'))
+}
+plt2_n3 = readRDS(paste0(savingdir,'/','plt2_n3'))
+plt2_n3$limits_faceted
+```
+
+:::
+
+### Provinces
+
+::: panel-tabset 
+
+#### n_neigh=10
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+plt2$clustRegion_facetd
+```   
+
+#### n_neigh=5
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+plt2_n5$clustRegion_facetd
+```   
+
+#### n_neigh=3
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+plt2_n3$clustRegion_facetd
+```   
+
+:::
+
+:::
+
+## No Matching - k=6
+
+::: panel-tabset 
+
+### Limits
+
+::: panel-tabset 
+
+#### n_neigh=10
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+if(generating){
+  list_cluster_membership_and_bounderies = readRDS(
+    file =  paste0(savingdir,'/','list_cluster_membership_and_bounderies_10neigh_k6'))
+  
+  clust_member_limits =unlist_coloring_obj(list_cluster_membership_and_bounderies)
+  
+  plt2 = gen_plots(gridBase = grid_base,clustMemLim = clust_member_limits,df_GeoAbio = df_geo_abiotics)
+  saveRDS(plt2,paste0(savingdir,'/','plt2'))
+  rm(list_cluster_membership_and_bounderies)
+  rm(clust_member_limits)
+}
+plt2 = readRDS(paste0(savingdir,'/','plt2'))
+plt2$limits_faceted
+```
+
+#### n_neigh=5
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+if(generating){
+  list_cluster_membership_and_bounderies = readRDS(
+    file =  paste0(savingdir,'/','list_cluster_membership_and_bounderies_05neigh_k6'))
+  
+  clust_member_limits = unlist_coloring_obj(list_cluster_membership_and_bounderies)
+  rm(list_cluster_membership_and_bounderies)
+  
+  plt2_n5 = gen_plots(gridBase = grid_base,clustMemLim = clust_member_limits,df_GeoAbio = df_geo_abiotics)
+  rm(clust_member_limits)
+  saveRDS(plt2_n5,paste0(savingdir,'/','plt2_n5'))
+}
+plt2_n5 = readRDS(paste0(savingdir,'/','plt2_n5'))
+plt2_n5$limits_faceted
+```
+
+#### n_neigh=3
+
+```{r}
+#| fig-width: 25
+#| fig-height: 12
+#| fig-align: center
+#| fig-dpi: 300
+
+if(generating){
+  list_cluster_membership_and_bounderies = readRDS(
+    file =  paste0(savingdir,'/','list_cluster_membership_and_bounderies_mirroredLat_n3_k6'))
   
   clust_member_limits = unlist_coloring_obj(list_cluster_membership_and_bounderies)
   rm(list_cluster_membership_and_bounderies)

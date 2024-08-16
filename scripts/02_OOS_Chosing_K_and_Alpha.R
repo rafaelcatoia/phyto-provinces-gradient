@@ -21,6 +21,27 @@ list_AitDist = readRDS(file = paste0(savingdir,'/','list_AitDist_IS_OOS'))
 list_normalized_geo_abiotics_dists = readRDS(file = paste0(savingdir,'/','list_abio_bio_geo_dist_normallized'))
 list_geo_abiotics_dists = readRDS(file = paste0(savingdir,'/','list_abio_bio_geo_dist'))
 
+
+
+################################################################## Visualizing "In sample"
+list_geo_abiotics_dists$bioticDist %>%  as.matrix() %>% as.dist() %>% cmdscale(.,k = 2) %>%  plot()
+list_geo_abiotics_dists$bioticDist %>%  as.matrix() %>% as.dist() %>% hclust(.,method='ward.D') %>%  plot()
+
+################################################################## Visualizing OOS
+## Dendrogram
+
+par(mfrow=c(4,4))
+for(ii in 1:16){
+  list_AitDist[[ii]]$OOS %>% as.matrix() %>% as.dist() %>% hclust(.,method='ward.D') %>% plot()
+}
+
+## MDS
+for(ii in 1:16){
+  list_AitDist[[ii]]$OOS %>% as.matrix() %>% as.dist() %>% cmdscale(.,k = 2) %>%  plot()
+}
+par(mfrow=c(1,1))
+
+
 ########################### Deciding K ###########################
 ## Computing the metrics ##
 df_evaluation <- data.table::rbindlist(

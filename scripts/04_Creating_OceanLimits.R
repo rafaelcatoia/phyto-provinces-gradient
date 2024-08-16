@@ -23,6 +23,8 @@ list_geo_abiotics_dists = readRDS(file = paste0(savingdir,'/','list_abio_bio_geo
 grid_base = readRDS(file = paste0(savingdir,'/','grid_base'))
 
 
+####### Running for 3 nearest neig ## ----------------------------------------------------------------------------- 
+nneigh = 3
 ##
 ## ----------------------------------------------------------------------------- 10 neigh
 ##
@@ -31,7 +33,7 @@ list_cluster_membership_and_bounderies_mirroredLat = parallel::mclapply(
   list_AitDist,
   function(x){
     coloring_map(D = x,
-                 nclusters = 6,
+                 nclusters = nneigh,
                  gbase = grid_base,
                  list_normalized_dist = list_normalized_geo_abiotics_dists)
   },mc.cores = 10)
@@ -48,7 +50,7 @@ saveRDS(list_cluster_membership_and_bounderies_mirroredLat,
 list_cluster_membership_and_bounderies_mirroredLat_n5 = parallel::mclapply(
   list_AitDist,
   function(x){coloring_map(
-    D = x,nclusters = 6,
+    D = x,nclusters = nneigh,
     gbase = grid_base %>% select(
       lat_grid,depth_grid,
       n_neighs01,n_neighs02,n_neighs03,n_neighs04,n_neighs05),
@@ -66,7 +68,7 @@ list_cluster_membership_and_bounderies_mirroredLat_n3 = parallel::mclapply(
   list_AitDist,
   function(x){
     coloring_map(
-      D = x,nclusters = 6,
+      D = x,nclusters = nneigh,
       gbase = grid_base %>% select(
         lat_grid,depth_grid,
         n_neighs01,n_neighs02,n_neighs03),
@@ -79,23 +81,22 @@ saveRDS(list_cluster_membership_and_bounderies_mirroredLat_n3,
 
 
 ## Now with a different number of clusters
-
-##
-## ----------------------------------------------------------------------------- 10 neigh
+####### Running for 3 nearest neig ## ----------------------------------------------------------------------------- 
+nneigh = 6
 ##
 
 list_cluster_membership_and_bounderies_mirroredLat = parallel::mclapply(
   list_AitDist,
   function(x){
     coloring_map(D = x,
-                 nclusters = 4,
+                 nclusters = nneigh,
                  gbase = grid_base,
                  list_normalized_dist = list_normalized_geo_abiotics_dists)
   },mc.cores = 10)
 
 
 saveRDS(list_cluster_membership_and_bounderies_mirroredLat,
-        file = paste0(savingdir,'/','list_cluster_membership_and_bounderies_10neigh_k5'))
+        file = paste0(savingdir,'/','list_cluster_membership_and_bounderies_10neigh_k6'))
 
 
 ##
@@ -105,14 +106,14 @@ saveRDS(list_cluster_membership_and_bounderies_mirroredLat,
 list_cluster_membership_and_bounderies_mirroredLat_n5 = parallel::mclapply(
   list_AitDist,
   function(x){coloring_map(
-    D = x,nclusters = 4,
+    D = x,nclusters = nneigh,
     gbase = grid_base %>% select(
       lat_grid,depth_grid,
       n_neighs01,n_neighs02,n_neighs03,n_neighs04,n_neighs05),
     list_normalized_dist = list_normalized_geo_abiotics_dists)},mc.cores = 10)
 
 saveRDS(list_cluster_membership_and_bounderies_mirroredLat_n5,
-        file = paste0(savingdir,'/','list_cluster_membership_and_bounderies_05neigh_k5'))
+        file = paste0(savingdir,'/','list_cluster_membership_and_bounderies_05neigh_k6'))
 
 ##
 ## ----------------------------------------------------------------------------- 3 neigh
@@ -122,7 +123,7 @@ list_cluster_membership_and_bounderies_mirroredLat_n3 = parallel::mclapply(
   list_AitDist,
   function(x){
     coloring_map(
-      D = x,nclusters = 4,
+      D = x,nclusters = nneigh,
       gbase = grid_base %>% select(
         lat_grid,depth_grid,
         n_neighs01,n_neighs02,n_neighs03),
@@ -130,7 +131,4 @@ list_cluster_membership_and_bounderies_mirroredLat_n3 = parallel::mclapply(
   mc.cores = 10)
 
 saveRDS(list_cluster_membership_and_bounderies_mirroredLat_n3,
-        file = paste0(savingdir,'/','list_cluster_membership_and_bounderies_mirroredLat_n3_k5'))
-
-
-
+        file = paste0(savingdir,'/','list_cluster_membership_and_bounderies_mirroredLat_n3_k6'))

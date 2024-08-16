@@ -50,8 +50,8 @@ max_lat = round(max(df_geo_abiotics$lat_scaled),1)+0.1
 min_depth = round(min(df_geo_abiotics$depht_scaled),1)-0.1
 max_depth = round(max(df_geo_abiotics$depht_scaled),1)+0.1
 
-lat_grid = seq(min_lat,max_lat,0.05)
-depth_grid = seq(min_depth,max_depth,0.05)
+lat_grid = seq(min_lat,max_lat,0.025)
+depth_grid = seq(min_depth,max_depth,0.025)
 
 ## expanding the grid 
 grid_base = tidyr::expand_grid(lat_grid,depth_grid)
