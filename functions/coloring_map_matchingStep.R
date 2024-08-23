@@ -1,11 +1,19 @@
 ############## ------ function to get the regions
 
-## here we have a grid that contains the closest 5 samples to each lat,depth
+## Objects to debug
+# here we have a grid that contains the closest 5 samples to each lat,depth
 # grid_base <- readRDS(paste0(savingdir,'/','grid_base'))
-# D = list_AitDist[[1]]
 # 
-
-## here are the clusters that we will use as the TRUE labels
+# ###
+# D = list_AitDist[[1]]
+# trueClusterMembership = mat_cluster_membership_label
+# gbase = grid_base
+# list_normalized_dist = list_normalized_geo_abiotics_dists
+# list_dist_toMatch = list_geo_abiotics_dists
+# vet_alpha=c(0.05,0.10,0.20)
+# nclusters=3
+ 
+ ## here are the clusters that we will use as the TRUE labels
 coloring_map_matching <- function(
     D,
     trueClusterMembership,
@@ -21,7 +29,6 @@ coloring_map_matching <- function(
   ####################################                ####################################
   #################################### Creating Phase ####################################
   ####################################                ####################################
-  list_normalized_dist$abioticDist
   
     D1 = as.dist(D)
     D2 = as.dist( (1-as.numeric(vet_alpha[1]))*D + as.numeric(vet_alpha[1])*list_normalized_dist$geoDist)
@@ -41,12 +48,7 @@ coloring_map_matching <- function(
     v1_hclust=cutree(hclust_0,k = nclusters),
     v2_hclust=cutree(hclust_0.05,k = nclusters),
     v3_hclust=cutree(hclust_0.10,k = nclusters),
-    v4_hclust=cutree(hclust_0.20,k = nclusters),
-    ####################################   pam    ####################################
-    v1_pam=cluster::pam(x=D1,k = nclusters,cluster.only = T),
-    v2_pam=cluster::pam(x=D2,k = nclusters,cluster.only = T),
-    v3_pam=cluster::pam(x=D3,k = nclusters,cluster.only = T),
-    v4_pam=cluster::pam(x=D4,k = nclusters,cluster.only = T)
+    v4_hclust=cutree(hclust_0.20,k = nclusters)
   )
   
   ####################################################################################
@@ -86,7 +88,7 @@ coloring_map_matching <- function(
     out_list[[i]]<-data.frame(clustRegion=clustRegion,limits = grid_base_matrix_limits$value)
   }
   
-  names(out_list) <- c(paste0('ward_',c(0,0.05,0.1,0.2)),paste0('pam_',c(0,0.05,0.1,0.2)))
+  names(out_list) <- c(paste0('ward_',c(0,0.05,0.1,0.2)))
   
   return(out_list)
 }

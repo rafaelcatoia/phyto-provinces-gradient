@@ -1,5 +1,10 @@
 ##### Matching Function 
 
+## objects for debugging 
+#DistMatrix = list_dist_toMatch$geoDist
+#trueLabel = trueClusterMembership[,i]
+#proposedLabel = mat_cluster_membership[,i]
+
 matching_clusters <- function(DistMatrix,trueLabel,proposedLabel){
 
   Kmatch = max(trueLabel)
@@ -29,65 +34,3 @@ matching_clusters <- function(DistMatrix,trueLabel,proposedLabel){
     #matchedMax = matchedMax
   #))
 }
-
-relabel_matching <- function(x,xMatched){
-  out_x <- numeric(length = length(x))
-  for(i in 1:max(xMatched)){
-    out_x[which(x==xMatched[i])] <- i
-  }
-  return(out_x)
-}
-
-
-# batata <- function(matX){
-#   dimMat = dim(as.matrix(matX))
-#   #if no dimension is 1 
-#   if(!(sum(dimMat==1)>0)){
-#     if(dimMat[1]>dimMat[2]){
-#       return(mean(apply(matX,1,min)))
-#     }else{
-#       return(mean(apply(matX,2,min)))
-#     }
-#   }else{
-#     return(mean(as.vector(matX)))
-#   }
-# }
-
-## Checking ----
-# 
-# obj_matched = matching_clusters(
-#   DistMatrix = list_geo_abiotics_dists$geo_Dist_mirrored,
-#   trueLabel = trueClusterMembership,
-#   proposedLabel = current_label
-# )
-# mean(current_label==trueClusterMembership)
-# mean(obj_matched$matchedMean==trueClusterMembership)
-# 
-# p1 = df_geo_abiotics %>% mutate(
-#   trueLabel = trueClusterMembership,
-#   replicateLabel = as.factor(current_label)
-# ) %>% ggplot(
-#   aes(x=Latitude,y=Depth)
-# )+geom_label(aes(label=trueLabel,color=replicateLabel))+
-#   scale_y_reverse()
-# 
-# p2 = df_geo_abiotics %>% mutate(
-#   trueLabel = trueClusterMembership,
-#   replicateLabel = as.factor(obj_matched$matchedMean)
-# ) %>% ggplot(
-#   aes(x=Latitude,y=Depth)
-# )+geom_label(aes(label=trueLabel,color=replicateLabel))+
-#   scale_y_reverse()
-# 
-# p3 = df_geo_abiotics %>% mutate(
-#   trueLabel = trueClusterMembership,
-#   replicateLabel = as.factor(obj_matched$matchedMax)
-# ) %>% ggplot(
-#   aes(x=Latitude,y=Depth)
-# )+geom_label(aes(label=trueLabel,color=replicateLabel))+
-#   scale_y_reverse()
-# 
-# ggpubr::ggarrange(plotlist = list(p1,p2,p3),
-#                   nrow = 1,
-#                   common.legend = T)
-# 

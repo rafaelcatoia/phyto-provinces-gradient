@@ -716,10 +716,10 @@ plt2_n3$clustRegion_facetd
 
 
 
-# Cluster Composition
 
-Here I chose $\alpha=0.01$ and `ward.D`
+# Cluster Composition - k=3
 
+Out of curiosity $\alpha=0.00$ and `ward.D`
 
 ::: panel-tabset 
 
@@ -729,7 +729,7 @@ Here I chose $\alpha=0.01$ and `ward.D`
 #| layout-ncol: 2
 #| layout-nrow: 2
 
-nclusters = 5
+nclusters = 3
 
 mat_cluster_membership_label <- cbind.data.frame(
 
@@ -755,12 +755,12 @@ dfGrump_longer_filtered_clustered =  dfGrump_longer_filtered %>% left_join(
 set.seed(1234)
 objd_dimRed = distMatrix_dimReduction(
   distMatrix = list_geo_abiotics_dists$bioticDist,
-  neighUmap = 5,
-  perplexityTsne = 15)
+  neighUmap = 20,
+  perplexityTsne = 3)
 
 dimReduc_obj <- plot_dimReduc_coords(
   coord_plots = objd_dimRed,
-  clusters = dfPlots$hclust_a0.10)
+  clusters = dfPlots$hclust_a0,weights = df_geo_abiotics$Depth)
 
 dimReduc_obj$MDS_2d
 dimReduc_obj$nMDS_2d
@@ -770,9 +770,12 @@ dimReduc_obj$umap_2d
 
 ## BioComposition
 
+
+
 ```{r}
 eco_groups_zoop_tax_lat_depth = dfGrump_longer_filtered %>% 
-  mutate(Eco_relevant_plank_groups=ifelse(Eco_relevant_plank_groups=='','NotAssigned',Eco_relevant_plank_groups),
+  mutate(Eco_relevant_plank_groups=ifelse(Eco_relevant_plank_groups=='',
+                                          'NotAssigned',Eco_relevant_plank_groups),
          Raw.Sequence.Counts=Corrected_sequence_counts) %>% 
   group_by(SampleID,Eco_relevant_plank_groups) %>% 
   summarise(Raw.Sequence.Counts=sum(Raw.Sequence.Counts)) %>% 
@@ -790,6 +793,49 @@ eco_groups_zoop_tax_lat_depth = dfGrump_longer_filtered %>%
   arrange(SampleID)
 
 names_eco_relevant = colnames(eco_groups_zoop_tax_lat_depth[,-1])
+```
+
+
+```{r}
+#| fig-width: 12
+#| fig-height: 3
+
+eco_groups_zoop_tax_lat_depth %>% 
+  bind_cols(mat_cluster_membership_label %>% transmute(Cluster = factor(hclust_a0))) %>%
+  pivot_longer(-c('SampleID','Cluster'),names_to = 'EcoRel',values_to = 'RA') %>%
+  group_by(Cluster,EcoRel) %>% 
+  summarise(MeanRA = mean(RA)) %>% 
+  ggplot(aes(y=Cluster,fill=EcoRel,x=MeanRA))+
+  geom_col()+
+  theme_minimal()
+```
+
+
+
+```{r}
+#| fig-width: 12
+#| fig-height: 9
+
+
+list_plot_all_samples = eco_groups_zoop_tax_lat_depth %>% 
+  bind_cols(mat_cluster_membership_label %>% transmute(Cluster = factor(hclust_a0))) %>%
+  pivot_longer(-c('SampleID','Cluster'),names_to = 'EcoRel',values_to = 'RA') %>%
+  group_split(Cluster) %>% 
+  lapply(., function(xx){
+    xx %>% left_join(df_geo_abiotics %>% select(SampleID,Depth)) %>% 
+      arrange(-Depth) %>% 
+      ggplot(aes(y=SampleID,fill=EcoRel,x=RA))+
+      geom_col()+
+      theme_minimal()
+      })
+
+ggpubr::ggarrange(plotlist = list_plot_all_samples,ncol = 1)
+```
+
+```{r}
+#| fig-width: 12
+#| fig-height: 8
+
 
 eco_relevant_plot <- 
   dfPlots %>% mutate(SampleID=factor(SampleID)) %>% 
@@ -804,7 +850,155 @@ eco_relevant_plot_df =
     eco_relevant_plot %>% 
       select(SampleID, one_of(names_eco_relevant))
   )
-    
+
+eco_relevant_plot_df %>%
+    tidyr::pivot_longer(-c('SampleID','Latitude','Depth','Cluster'),
+                        names_to = 'Eco_Relevant',values_to = 'RA') %>% 
+  mutate(Cluster=factor(Cluster)) %>% 
+    ggplot2::ggplot(aes(x=Latitude,y=Depth,size=RA,color=Cluster)) +
+    geom_point(alpha=0.5)+
+    facet_wrap(Eco_Relevant~.)+
+    scale_y_reverse()+
+    theme_minimal(base_size = 16)+
+    theme(legend.position = 'bottom')
+```
+
+
+:::
+
+# Cluster Composition - k=6
+
+Out of curiosity $\alpha=0.00$ and `ward.D`
+
+::: panel-tabset 
+
+## Dimensionality Reduction
+
+```{r}
+#| layout-ncol: 2
+#| layout-nrow: 2
+
+nclusters = 6
+
+mat_cluster_membership_label <- cbind.data.frame(
+
+  ####################################   pam    ####################################
+ #pam_a0=cluster::pam(x=D1,k = nclusters,cluster.only = T),
+ #pam_a0.05=cluster::pam(x=D2,k = nclusters,cluster.only = T),
+ #pam_a0.10=cluster::pam(x=D3,k = nclusters,cluster.only = T),
+ #pam_a0.20=cluster::pam(x=D4,k = nclusters,cluster.only = T),
+  hclust_a0=cutree(hclust_0   ,k = nclusters),
+  hclust_a0.05=cutree(hclust_0.05,k = nclusters),
+  hclust_a0.10=cutree(hclust_0.10,k = nclusters),
+  hclust_a0.20=cutree(hclust_0.20,k = nclusters)
+)
+
+
+dfPlots = df_geo_abiotics %>%
+  bind_cols(mat_cluster_membership_label)
+
+dfGrump_longer_filtered_clustered =  dfGrump_longer_filtered %>% left_join(
+  dfPlots %>% transmute(SampleID=SampleID,Cluster = hclust_a0.10)
+)
+
+set.seed(1234)
+objd_dimRed = distMatrix_dimReduction(
+  distMatrix = list_geo_abiotics_dists$bioticDist,
+  neighUmap = 20,
+  perplexityTsne = 3)
+
+dimReduc_obj <- plot_dimReduc_coords(
+  coord_plots = objd_dimRed,
+  clusters = dfPlots$hclust_a0,weights = df_geo_abiotics$Depth)
+
+dimReduc_obj$MDS_2d
+dimReduc_obj$nMDS_2d
+dimReduc_obj$TSNE_2d
+dimReduc_obj$umap_2d
+```
+
+## BioComposition
+
+
+
+```{r}
+eco_groups_zoop_tax_lat_depth = dfGrump_longer_filtered %>% 
+  mutate(Eco_relevant_plank_groups=ifelse(Eco_relevant_plank_groups=='',
+                                          'NotAssigned',Eco_relevant_plank_groups),
+         Raw.Sequence.Counts=Corrected_sequence_counts) %>% 
+  group_by(SampleID,Eco_relevant_plank_groups) %>% 
+  summarise(Raw.Sequence.Counts=sum(Raw.Sequence.Counts)) %>% 
+  select(SampleID,Eco_relevant_plank_groups,Raw.Sequence.Counts) %>%
+  distinct() %>% 
+  group_by(SampleID,Eco_relevant_plank_groups) %>% 
+  summarise(Sum_RawCounts = sum(Raw.Sequence.Counts)) %>% ungroup %>% 
+  tidyr::pivot_wider(
+    id_cols = SampleID,
+    names_from = Eco_relevant_plank_groups ,
+    values_from = Sum_RawCounts,
+    values_fill = 0.01) %>%
+  data.frame() %>% mutate(SampleID=factor(SampleID)) %>% 
+  mutate(across(where(is.numeric))/rowSums(across(where(is.numeric)))) %>% 
+  arrange(SampleID)
+
+names_eco_relevant = colnames(eco_groups_zoop_tax_lat_depth[,-1])
+```
+
+
+```{r}
+#| fig-width: 12
+#| fig-height: 3
+
+eco_groups_zoop_tax_lat_depth %>% 
+  bind_cols(mat_cluster_membership_label %>% transmute(Cluster = factor(hclust_a0))) %>%
+  pivot_longer(-c('SampleID','Cluster'),names_to = 'EcoRel',values_to = 'RA') %>%
+  group_by(Cluster,EcoRel) %>% 
+  summarise(MeanRA = mean(RA)) %>% 
+  ggplot(aes(y=Cluster,fill=EcoRel,x=MeanRA))+
+  geom_col()+
+  theme_minimal()
+```
+
+
+
+```{r}
+#| fig-width: 12
+#| fig-height: 9
+
+
+list_plot_all_samples = eco_groups_zoop_tax_lat_depth %>% 
+  bind_cols(mat_cluster_membership_label %>% transmute(Cluster = factor(hclust_a0))) %>%
+  pivot_longer(-c('SampleID','Cluster'),names_to = 'EcoRel',values_to = 'RA') %>%
+  group_split(Cluster) %>% 
+  lapply(., function(xx){
+    xx %>% left_join(df_geo_abiotics %>% select(SampleID,Depth)) %>% 
+      arrange(-Depth) %>% 
+      ggplot(aes(y=SampleID,fill=EcoRel,x=RA))+
+      geom_col()+
+      theme_minimal()
+      })
+
+ggpubr::ggarrange(plotlist = list_plot_all_samples,ncol = 1)
+```
+
+```{r}
+#| fig-width: 12
+#| fig-height: 8
+
+
+eco_relevant_plot <- 
+  dfPlots %>% mutate(SampleID=factor(SampleID)) %>% 
+  left_join(eco_groups_zoop_tax_lat_depth) 
+  
+eco_relevant_plot_df = 
+  eco_relevant_plot %>%
+  transmute(
+    SampleID,Latitude,Depth,Cluster=hclust_a0.10
+  ) %>% 
+  left_join(
+    eco_relevant_plot %>% 
+      select(SampleID, one_of(names_eco_relevant))
+  )
 
 eco_relevant_plot_df %>%
     tidyr::pivot_longer(-c('SampleID','Latitude','Depth','Cluster'),
