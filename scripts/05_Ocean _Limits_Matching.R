@@ -23,7 +23,7 @@ list_geo_abiotics_dists = readRDS(file = paste0(savingdir,'/','list_abio_bio_geo
 grid_base = readRDS(file = paste0(savingdir,'/','grid_base'))
 
 ## Creating cluster label ####### 
-nclusters_match = 3
+nclusters = 3
 D = list_normalized_geo_abiotics_dists$bioticDist
 vet_alpha = c(0,0.05,0.1,0.2)
 D1 = as.dist(D)
@@ -66,7 +66,7 @@ list_cluster_membership_matched = parallel::mclapply(
   function(x){
     coloring_map_matching(
       D = x,
-      nclusters = nclusters_match,
+      nclusters = nclusters,
       trueClusterMembership = mat_cluster_membership_label,
       gbase = grid_base,
       list_normalized_dist = list_normalized_geo_abiotics_dists)
@@ -85,7 +85,7 @@ list_cluster_membership_matched = parallel::mclapply(
   list_AitDist,
   function(x){
     coloring_map_matching(
-      D = x,nclusters = nclusters_match,
+      D = x,nclusters = nclusters,
       trueClusterMembership = mat_cluster_membership_label,
       gbase = grid_base %>% select(lat_grid,depth_grid,n_neighs01,n_neighs02,n_neighs03,n_neighs04,n_neighs05),
       list_normalized_dist = list_normalized_geo_abiotics_dists)
@@ -103,7 +103,7 @@ list_cluster_membership_matched = parallel::mclapply(
   list_AitDist,
   function(x){
     coloring_map_matching(
-      D = x,nclusters = nclusters_match,
+      D = x,nclusters = nclusters,
       trueClusterMembership = mat_cluster_membership_label,
       gbase = grid_base %>% select(lat_grid,depth_grid,n_neighs01,n_neighs02,n_neighs03),
       list_normalized_dist = list_normalized_geo_abiotics_dists)},
